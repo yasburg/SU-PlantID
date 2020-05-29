@@ -1,26 +1,53 @@
 import React from 'react';
-import { View, Text, Dimensions, StyleSheet, Easing, Animated,  TouchableOpacity, Image } from 'react-native';
+import { View, Text, Dimensions, StyleSheet, Easing, Animated, TouchableOpacity, Image } from 'react-native';
 import Colors from "./utils/Colors"
 import { Feather } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 const SCREEN_WIDTH = Dimensions.get("window").width
 const SCREEN_HEIGHT = Dimensions.get("window").height
-let percent = 0
-let percent2 = 0
+const apiGetPredictionURL = 'ec2-35-170-75-50.compute-1.amazonaws.com';
+
 
 export default class App extends React.PureComponent {
     constructor(props){
       super(props);
       this.widthAnimnVal = new Animated.Value(0)
       this.widthAnimnVal2 = new Animated.Value(0)
+      this.firstPrediction = ""
+      this.secondPrediction = ""
         
       this.state = {
         num: 0,
         image: "",
-        isUploaded: false
+        isUploaded: false,
+        percent: 0,
+        percent2: 0
       }
     }
-  
+
+    _postImage = async () => {
+      let uploadData = new FormData();
+      uploadData.append('userImage', this.state.image);
+      uploadData.append('filename', 'UserImage.jpg');
+
+      fetch(apiGetPredictionURL, {
+        method:'post',
+        body: uploadData
+      }).then(response => response.json())
+        .then(response => {
+          if(response.status){
+            this.firstPrediction = response.output1;
+            this.secondPrediction = response.output2;
+            this.setState({isUploaded:true, percent: response.out_perc1, percent2: response.out_perc2})
+            console.log(response);
+          } else {
+            console.log('Error', "Error on server side.");
+          }
+        }).catch(() => {
+          console.log('Error', 'Error on network.');
+        }) 
+    }
+
     _pickImage = async () => {
       try {
         let result = await ImagePicker.launchImageLibraryAsync({
@@ -31,30 +58,22 @@ export default class App extends React.PureComponent {
         });
         console.log(result)
         if (!result.cancelled) {
-          if(this.state.isUploaded){
-            percent = percent/2
-            percent2 = percent*2
-          }
-          percent = 53.27
-          percent2 = 43
-          this.setState({ image: result.uri },()=>this.changeWidth(percent,percent2));
+          this._postImage;
         }else{
-          alert("Image can not be uploaded.")
+          alert("Image can not be uploaded.");
         }
-        this.setState({isUploaded: true})
+        
       } catch (e) {
-        alert("Image can not be uploaded.")
+        alert("Image can not be uploaded.");
         console.log(e);
       }
     };
-    
 
     imageDelete=() => {
       this.setState({image:"",isUploaded:false})
       this.changeWidth(0,0)
-      percent = 0
-      percent2 = 0
-
+      this.state.percent = 0
+      this.state.percent2 = 0
     }
 
     changeWidth = (value,value2) => {
@@ -71,25 +90,25 @@ export default class App extends React.PureComponent {
         })
       }
 
-    // render image according to predict coming from server. 
+    //render image according to predict coming from server. 
     //If there is any predict higher than 90 there will be only 1 displayed, otherwise 2
     //Percent value should be replaced with predict value coming from API. 
     //Also disease names should come from API.
 
     renderImages = () => { 
-      if(percent >= 90){
+      if(this.state.percent >= 90){
         return(
         <View style={{flex:1,paddingLeft:30,justifyContent:"space-evenly"}}>
           <View style={{flexDirection:"row",alignItems:"center",justifyContent:"space-evenly"}}>
             <Text style={{fontSize:30,fontWeight:"500",color:Colors.darkGrayDark.alpha1}}>
-              Elma Kurdu
+              {this.firstPrediction}
             </Text>
           <View style={styles.barContainer}>
             <Animated.View style={[styles.bar,{width: this.widthAnimnVal}]}> 
             </Animated.View>
           </View>
           <Text style={{fontSize:18,color:Colors.darkGrayDark.alpha1,fontWeight:"500"}}>
-            {"%" + percent}
+            {"%" + this.state.percent}
           </Text>
         </View>
       </View>
@@ -99,26 +118,26 @@ export default class App extends React.PureComponent {
           <View style={{flex:1,paddingLeft:SCREEN_WIDTH*0.05,justifyContent:"space-evenly"}}>
             <View style={{flexDirection:"row",alignItems:"center",justifyContent:"space-evenly"}}>
               <Text style={styles.diseaseText}>
-                Elma Kurdu
+              {this.firstPrediction}
               </Text>
             <View style={styles.barContainer}>
               <Animated.View style={[styles.bar,{width: this.widthAnimnVal}]}> 
               </Animated.View>
             </View>
               <Text style={{fontSize:18,color:Colors.darkGrayDark.alpha1,fontWeight:"500",marginLeft:20}}>
-                {"%" + (Math.round(percent * 100) / 100).toFixed(2)}
+                {"%" + (Math.round(this.state.percent * 100) / 100).toFixed(2)}
               </Text>
           </View>
           <View style={{flexDirection:"row",alignItems:"center",justifyContent:"space-evenly"}}>
             <Text style={styles.diseaseText}>
-              Portakal Turunçgil Yeşillenme
+            {this.secondPrediction}
             </Text>
             <View style={styles.barContainer}>
               <Animated.View style={[styles.bar,{width: this.widthAnimnVal2}]}> 
               </Animated.View>
             </View>
             <Text style={{fontSize:18,color:Colors.darkGrayDark.alpha1,fontWeight:"500",marginLeft:20}}>
-              {"%" + (Math.round(percent2 * 100) / 100).toFixed(2)}
+              {"%" + (Math.round(this.state.percent2 * 100) / 100).toFixed(2)}
             </Text>
           </View>
         </View>
