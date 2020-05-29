@@ -5,7 +5,7 @@ import { Feather } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 const SCREEN_WIDTH = Dimensions.get("window").width
 const SCREEN_HEIGHT = Dimensions.get("window").height
-const apiGetPredictionURL = 'ec2-35-170-75-50.compute-1.amazonaws.com';
+const apiGetPredictionURL = 'http://ec2-35-170-75-50.compute-1.amazonaws.com:8080';
 
 
 export default class App extends React.PureComponent {
@@ -30,11 +30,17 @@ export default class App extends React.PureComponent {
       uploadData.append('userImage', this.state.image);
       uploadData.append('filename', 'UserImage.jpg');
 
+      console.log(apiGetPredictionURL)
       fetch(apiGetPredictionURL, {
         method:'post',
-        body: uploadData
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(uploadData)
       }).then(response => response.json())
         .then(response => {
+          console.log(response);
           if(response.status){
             this.firstPrediction = response.output1;
             this.secondPrediction = response.output2;
@@ -56,9 +62,9 @@ export default class App extends React.PureComponent {
           aspect: [4, 3],
           quality: 1,
         });
-        console.log(result)
         if (!result.cancelled) {
-          this._postImage;
+          this._postImage();
+          this.setState({image: result.uri})
         }else{
           alert("Image can not be uploaded.");
         }
