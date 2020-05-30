@@ -29,10 +29,12 @@ export default class App extends React.PureComponent {
       let uploadData = new FormData();
       uploadData.append('userImage', this.state.image);
       uploadData.append('filename', 'UserImage.jpg');
+      uploadData.append('Content-Type', 'application/json');
 
       console.log(apiGetPredictionURL)
       fetch(apiGetPredictionURL, {
         method:'post',
+        mode: 'no-cors',
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json'
