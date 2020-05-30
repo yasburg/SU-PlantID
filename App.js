@@ -5,7 +5,7 @@ import { Feather } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 const SCREEN_WIDTH = Dimensions.get("window").width
 const SCREEN_HEIGHT = Dimensions.get("window").height
-const apiGetPredictionURL = 'https://ec2-3-236-12-201.compute-1.amazonaws.com:8080';
+const apiGetPredictionURL = 'https://ec2-3-235-171-226.compute-1.amazonaws.com:5000';
 
 
 export default class App extends React.PureComponent {
