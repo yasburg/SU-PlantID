@@ -5,7 +5,7 @@ import { Feather } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 const SCREEN_WIDTH = Dimensions.get("window").width
 const SCREEN_HEIGHT = Dimensions.get("window").height
-const apiGetPredictionURL = 'http://ec2-3-235-171-226.compute-1.amazonaws.com:5000';
+const apiGetPredictionURL = 'http://ec2-54-158-191-10.compute-1.amazonaws.com:5000/predict';
 
 
 export default class App extends React.PureComponent {
@@ -36,6 +36,8 @@ export default class App extends React.PureComponent {
         method:'post',
         mode: 'no-cors',
         headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Credentials" : true,
           Accept: 'application/json',
           'Content-Type': 'application/json'
         },
